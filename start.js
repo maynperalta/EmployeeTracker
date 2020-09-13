@@ -15,6 +15,15 @@ connection.connect(function(err) {
   if (err) throw err;
   //Run the start function after the connection is made to prompt the user
   console.log("employee_db connected")
+  console.log(`
+  ╔═══╗─────╔╗──────────────╔════╗──────╔╗
+  ║╔══╝─────║║──────────────║╔╗╔╗║──────║║
+  ║╚══╦╗╔╦══╣║╔══╦╗─╔╦══╦══╗╚╝║║╠╩╦══╦══╣║╔╦══╦═╗
+  ║╔══╣╚╝║╔╗║║║╔╗║║─║║║═╣║═╣──║║║╔╣╔╗║╔═╣╚╝╣║═╣╔╝
+  ║╚══╣║║║╚╝║╚╣╚╝║╚═╝║║═╣║═╣──║║║║║╔╗║╚═╣╔╗╣║═╣║
+  ╚═══╩╩╩╣╔═╩═╩══╩═╗╔╩══╩══╝──╚╝╚╝╚╝╚╩══╩╝╚╩══╩╝
+  ───────║║──────╔═╝║
+  ───────╚╝──────╚══╝`)
   start()
 });
 
@@ -30,6 +39,7 @@ function start() {
     choices: [
       "View employees",
       "View departments",
+      "View roles",
       "View managers",
       "Add an employee",
       "Remove an employee",
@@ -47,6 +57,9 @@ function start() {
           break;
         case "View departments":
           viewDepartments();
+          break;
+        case "View roles":
+          viewRoles();
           break;
         case "View managers":
           viewManagers();
@@ -82,6 +95,7 @@ function start() {
 function viewEmployees() {
   connection.query("SELECT * FROM employee", function(err, res) {
     if(err) throw err;
+    console.log("Employees:")
     console.table(res)
     start();
   });
@@ -90,14 +104,24 @@ function viewEmployees() {
 function viewDepartments() {
   connection.query("SELECT * FROM department", function(err, res) {
     if(err) throw err;
+    console.log("Departments:")
     console.table(res)
     start();
   });
 }
 
+function viewRoles() {
+  connection.query('SELECT * FROM role', function(err, res) {
+    if(err) throw err;
+    console.log("Roles:");
+    console.table(res);
+    start();
+  })
+}
+
 function viewManagers() {
-  let query = `SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN role ON (role.id = employee.role_id && employee.manager_id != 'NULL') INNER JOIN department ON (department.id = role.department_id) ORDER BY manager;`;
-  connection.query(query, (err, res) => {
+  connection.query("SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN role ON (role.id = employee.role_id && employee.manager_id != 'NULL') INNER JOIN department ON (department.id = role.department_id) ORDER BY manager", function(err, res) {
+    if(err) throw err;
     console.log("Employees by manager:");
     console.table(res);
     start();
@@ -105,6 +129,9 @@ function viewManagers() {
 }
 
 function addEmployee() {
+  connection.query('SELECT * FROM role', function (err) {
+    if (err) throw err;
+  
   inquirer.prompt([
     {
       message: "What is the employee's first name?",
@@ -119,7 +146,7 @@ function addEmployee() {
     {
       message: "What is the employee's role ID?",
       type: "number",
-      name: "role_id"
+      name: "roleID"
     },
     {
       message: "What is the employee's manager ID?",
@@ -127,11 +154,12 @@ function addEmployee() {
       name: "manager_id"
     }
   ]).then(function(res) {
-    connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [res.first_name, res.last_name, res.role_id, res.manager_id], function(err) {
+    connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [res.first_name, res.last_name, res.roleID, res.manager_id], function(err) {  
       if(err) throw err;
-      console.log(`Employee ${res.first_name} ${res.last_name} added to roster!`);
+      console.log('Employee added to roster!');
       start();
     })
+    });
   });
 }
 
