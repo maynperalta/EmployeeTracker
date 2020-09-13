@@ -26,26 +26,30 @@ function start() {
   inquirer.prompt ({
     message: "Please select an option: ",
     type: "list",
+    name: "choice",
     choices: [
       "View employees",
       "View departments",
+      "View managers",
       "Add an employee",
       "Remove an employee",
       "Add a department",
       "Remove a department",
       "Add a role",
+      "Remove a role",
       "Update an employee's role",
       "Exit"
-    ],
-    name: "choice"
-  }).then(answers => {
-    console.log(answers.choice);
-      switch(answers.choice){
+    ]
+  }).then(answer => {
+      switch(answer.choice) {
         case "View employees":
           viewEmployees();
           break;
         case "View departments":
           viewDepartments();
+          break;
+        case "View managers":
+          viewManagers();
           break;
         case "Add an employee":
           addEmployee();
@@ -61,6 +65,9 @@ function start() {
           break;
         case "Add a role":
           createRole();
+          break;
+        case "Remove a role":
+          deleteRole();
           break;
         case "Update an employee's role":
           updateRole();
@@ -86,6 +93,15 @@ function viewDepartments() {
     console.table(res)
     start();
   });
+}
+
+function viewManagers() {
+  let query = `SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN role ON (role.id = employee.role_id && employee.manager_id != 'NULL') INNER JOIN department ON (department.id = role.department_id) ORDER BY manager;`;
+  connection.query(query, (err, res) => {
+    console.log("Employees by manager:");
+    console.table(res);
+    start();
+  })
 }
 
 function addEmployee() {
@@ -150,7 +166,7 @@ function createDepartment() {
   ]).then(function(res) {
     connection.query("INSERT INTO department(name) VALUES(?)", [res.department], function(err) {
       if(err) throw err;
-      console.log(`Department ${res.department} created!`);
+      console.log(`${res.department} department created!`);
       start();
     })
   });
@@ -190,12 +206,28 @@ function createRole() {
       name: "department_id"
     }
   ]).then(function(res) {
-    connection.query("INSERT INTO role (title, salary, department_id) values (?, ?, ?)", [res.jobTitle, res.salary, res.department_id], function(err, res) {
+    connection.query("INSERT INTO role (title, salary, department_id) values (?, ?, ?)", [res.jobTitle, res.salary, res.department_id], function(err) {
       if (err) throw err;
       console.log("Job created!");
       start();
     })
   });
+}
+
+function deleteRole() {
+  inquirer.prompt([
+    {
+      message: "What is the role you wish to remove?",
+      type: "input",
+      name: "role"
+    }
+  ]).then(function(res) {
+    connection.query("DELETE FROM role WHERE title = ?", [res.role], function(err) {
+      if (err) throw err;
+      console.log(`Role ${res.role} removed.`);
+      start();
+    })
+  })
 }
 
 function updateRole() {
@@ -211,8 +243,9 @@ function updateRole() {
       name: "role_id"
     }
   ]).then(function(res) {
-    connection.query("UPDATE employee SET role_id = ? WHERE first_name = ?", [res.role_id, res.name], function(err, res) {
-      console.log(res);
+    connection.query("UPDATE employee SET role_id = ? WHERE first_name = ?", [res.role_id, res.name], function(err) {
+      if(err) throw err;
+      console.log(`${res.name}'s role has been updated.`);
       start();
     })
   })
