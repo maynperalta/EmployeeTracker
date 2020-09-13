@@ -111,7 +111,7 @@ function viewDepartments() {
 }
 
 function viewRoles() {
-  connection.query('SELECT * FROM role', function(err, res) {
+    connection.query('SELECT role.id, role.title, role.salary, department.name AS department FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) ORDER BY role.id', function(err, res) {
     if(err) throw err;
     console.log("Roles:");
     console.table(res);
