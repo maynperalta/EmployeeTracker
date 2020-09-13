@@ -30,7 +30,9 @@ function start() {
       "View employees",
       "View departments",
       "Add an employee",
+      "Remove an employee",
       "Add a department",
+      "Remove a department",
       "Add a role",
       "Update an employee's role",
       "Exit"
@@ -46,21 +48,26 @@ function start() {
           viewDepartments();
           break;
         case "Add an employee":
-          addEmployee()
+          addEmployee();
+          break;
+        case "Remove an employee":
+          deleteEmployee();
           break;
         case "Add a department":
-          createDepartment()
+          createDepartment();
+          break;
+        case "Remove a department":
+          deleteDepartmment();
           break;
         case "Add a role":
-          createRole()
+          createRole();
           break;
         case "Update an employee's role":
-          updateRole()
+          updateRole();
           break;
         case "Exit":
           connection.end();
-          default:
-            break;
+          break;
       }
   });
 }
@@ -104,12 +111,33 @@ function addEmployee() {
       name: "manager_id"
     }
   ]).then(function(res) {
-    connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [res.first_name, res.last_name, res.role_id, res.manager_id], function(err, res) {
+    connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [res.first_name, res.last_name, res.role_id, res.manager_id], function(err) {
       if(err) throw err;
-      console.log("Employee added!");
+      console.log(`Employee ${res.first_name} ${res.last_name} added to roster!`);
       start();
     })
   });
+}
+
+function deleteEmployee() {
+  inquirer.prompt([
+    {
+      message: "What is the employee's first name?",
+      type: "input",
+      name: "firstName"
+    },
+    {
+      message: "What is the employee's last name?",
+      type: "input",
+      name: "lastName"
+    }
+  ]).then(function(res) {
+      connection.query("DELETE FROM employee WHERE first_name = ? and last_name = ?", [res.firstName, res.lastName], function(err) {
+        if(err) throw err;
+        console.log(`Removed employee ${res.firstName} ${res.lastName} from roster.`)
+        start();
+      })
+  })
 }
 
 function createDepartment() {
@@ -118,11 +146,27 @@ function createDepartment() {
       message: 'What is the name of the new department?',
       type: "input",
       name: "department"
-    },
+    }
   ]).then(function(res) {
-    connection.query("INSERT INTO department(name) VALUES(?)", [res.department], function(err, res) {
+    connection.query("INSERT INTO department(name) VALUES(?)", [res.department], function(err) {
       if(err) throw err;
-      console.log("Department created!");
+      console.log(`Department ${res.department} created!`);
+      start();
+    })
+  });
+}
+
+function deleteDepartmment() {
+  inquirer.prompt([
+    {
+      message: "What is the department's name?",
+      type: "input",
+      name: "department"
+    }
+  ]).then(function(res) {
+    connection.query("DELETE FROM department WHERE name = ?", [res.department], function(err) {
+      if(err) throw err;
+      console.log(`Removed department: ${res.department}.`);
       start();
     })
   });
