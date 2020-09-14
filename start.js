@@ -15,6 +15,7 @@ connection.connect(function(err) {
   if (err) throw err;
   //Run the start function after the connection is made to prompt the user
   console.log("employee_db connected")
+  //Logo for application
   console.log(`
   ╔═══╗─────╔╗──────────────╔════╗──────╔╗
   ║╔══╝─────║║──────────────║╔╗╔╗║──────║║
@@ -24,13 +25,14 @@ connection.connect(function(err) {
   ╚═══╩╩╩╣╔═╩═╩══╩═╗╔╩══╩══╝──╚╝╚╝╚╝╚╩══╩╝╚╩══╩╝
   ───────║║──────╔═╝║
   ───────╚╝──────╚══╝`)
+  //Call to start application upon running node command.
   start()
 });
 
 connection.query("SELECT * FROM employee; ", function(err) {
     if(err) throw err;
 });
-
+//start function with inquirer menu.
 function start() {
   inquirer.prompt ({
     message: "Please select an option: ",
@@ -50,6 +52,7 @@ function start() {
       "Update an employee's role",
       "Exit"
     ]
+    //Switch case for menu choices along with corresponding functions.
   }).then(answer => {
       switch(answer.choice) {
         case "View employees":
@@ -91,7 +94,7 @@ function start() {
       }
   });
 }
-
+//functions to view employees, departments, roles, and managers.
 function viewEmployees() {
   connection.query("SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN role ON (role.id = employee.role_id) INNER JOIN department ON (department.id = role.department_id)", function(err, res) {
     if(err) throw err;
@@ -127,7 +130,7 @@ function viewManagers() {
     start();
   })
 }
-
+//functions to add and remove employees, departments, and roles.
 function addEmployee() {
   connection.query('SELECT * FROM role', function (err) {
     if (err) throw err;
@@ -257,7 +260,7 @@ function deleteRole() {
     })
   })
 }
-
+//function to change an employee's role. 
 function updateRole() {
   inquirer.prompt([
     {

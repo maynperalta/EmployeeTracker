@@ -1,3 +1,4 @@
+-- example seed data to demonstrate functionality
 INSERT INTO department (id, name) VALUES 
     (1, "Sales"),
     (2, "Engineering"),
