@@ -3,7 +3,7 @@
 Companies are always on the lookout for a CMS (Content Management System) interface. This is a demonstration of how one can be created and used to assist with keeping track of a company's employees.
 <br/>
 
-![](Assets/employee-tracker.gif)
+![](Assets/trackerdemo.gif)
 
 ## Technologies Used
 * JavaScript
